@@ -1,4 +1,4 @@
-﻿#!python3
+#!python3
 # -*- coding: utf-8 -*-
 
 # The MIT License (MIT)
@@ -25,22 +25,9 @@
 
 #-------------------------------------------------------------------------------
 
-## Use double quote and raw string.
+# Add here the files you want to ignore.
 
-# Inkspace path, e.g 'C:/Users/user_name/Desktop/inkscape'
-inkscape_path = r"C:/Program Files/Inkscape/"
+# Example:
+# files = [ '/background/background.svg' ]
 
-# PngOut path
-pngout_optmize = 0
-pngout_path = r""
-
-# Input SVG files path:
-input_path = r"DEFINE_YOUR_INPUT_PATH"
-output_path = r"DEFINE_YOUR_OUTPUT_PATH"
-
-# Output quality:
-# ['ldpi', 'mdpi', 'hdpi', 'xhdpi', 'xxhdpi', 'xxxhdpi']
-output_quality = ['hdpi']
-
-# How many threads can we use?
-number_of_threads = 4
+files = [ ]
