@@ -43,6 +43,7 @@ import time
 import settings
 import ignore
 import mipmap
+import slicer
 
 print('RES Builder')
 print('----------------------------------------------------------')
@@ -155,7 +156,13 @@ def process_svg():
         work_target = os.path.normpath(work_target)
         work_target = work_target.replace('\\\\','/').replace('\\','/')
 
-        ls = subprocess.Popen(['inkscape', svg, '-z',
+        nine_patch = (svg.find('.9.svg') != -1)
+
+        target_svg = svg
+        if(nine_patch):
+            target_svg = slicer.prepare_svg(svg, 1.0/dpi)
+
+        ls = subprocess.Popen(['inkscape', target_svg, '-z',
                                '-e' + work_target,
                                '-w' + str(twidth),
                                '-h' + str(theight)],
@@ -163,6 +170,8 @@ def process_svg():
                                stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         ls.wait()
 
+        if(nine_patch):
+            os.remove(target_svg)
 
 ## -------------
 
