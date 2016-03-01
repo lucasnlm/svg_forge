@@ -26,9 +26,5 @@
 #-------------------------------------------------------------------------------
 
 # Add here the files you want to handle as mipmap.
-# Use it to your app icons.
-
-# Example:
-# files = [ '/ic_launcher/ic_launcher.svg' ]
-
-files = [ '/ic_launcher/ic_launcher.svg' ]
+# Sample: files = [ 'ic_launcher.svg' ]
+files = [ 'ic_launcher.svg' ]

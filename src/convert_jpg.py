@@ -25,9 +25,7 @@
 
 #-------------------------------------------------------------------------------
 
-# Add here the files you want to ignore.
-
-# Example:
-# files = [ '/background/background.svg' ]
+# Add here the files you want to convert to jpg.
+# Sample: files = [ '/background/background.svg', '/background/background_header.svg' ]
 
 files = [ ]

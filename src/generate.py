@@ -43,7 +43,7 @@ import time
 import settings
 import ignore
 import mipmap
-import slicer
+import convert_jpg
 
 print('RES Builder')
 print('----------------------------------------------------------')
@@ -59,9 +59,9 @@ else:
 # [0.75, 1.0, 1.5, 2.0, 3.0, 4.0]
 # ['ldpi', 'mdpi', 'hdpi', 'xhdpi', 'xxhdpi', 'xxxhdpi']
 base_dpi = 1.0
-dpis = {'ldpi' : 0.75/base_dpi,  'mdpi' : 1.0/base_dpi,
-        'hdpi' : 1.5/base_dpi,   'xhdpi' : 2.0/base_dpi,
-        'xxhdpi' : 3.0/base_dpi, 'xxxhdpi' : 4.0/base_dpi}
+dpis = {'ldpi' : 0.75 / base_dpi,  'mdpi' : 1.0 / base_dpi,
+        'hdpi' : 1.5 / base_dpi,   'xhdpi' : 2.0 / base_dpi,
+        'xxhdpi' : 3.0 / base_dpi, 'xxxhdpi' : 4.0 / base_dpi}
 
 # Get target files.
 files = glob.glob(settings.input_path + '*.svg')
@@ -97,7 +97,7 @@ def process_svg():
         files.remove(svg)
 
     svg = os.path.normpath(svg)
-    svg = svg.replace('\\\\','/').replace('\\','/')
+    svg = svg.replace('\\\\','/').replace('\\','/').replace('//','/')
 
     tree = ET.parse(svg)
     root = tree.getroot()
@@ -105,6 +105,7 @@ def process_svg():
     heightStr = root.attrib['height']
 
     base_path = svg.replace(working_dir, '')
+    print_name = base_path.replace(settings.input_path, '')
 
     if widthStr.find('%') != -1:
         viewBox = root.attrib['viewBox'].split(' ')
@@ -135,15 +136,15 @@ def process_svg():
 
         if ignore_it:
             with lock:
-                print(thread_name + base_path + ' > ignored')
+                print(thread_name + print_name + ' > ignored')
             break
         else:
             with lock:
-                print(thread_name + base_path + ' > ' + dpi_name)
+                print(thread_name + print_name + ' > ' + dpi_name)
 
         is_mipmap = False
         for mipmap_file in mipmap.files:
-            if os.path.normpath(mipmap_file) == os.path.normpath(base_path):
+            if mipmap_file in os.path.normpath(base_path):
                 is_mipmap = True
                 break
 
@@ -154,24 +155,36 @@ def process_svg():
 
         work_target = current_path + target
         work_target = os.path.normpath(work_target)
-        work_target = work_target.replace('\\\\','/').replace('\\','/')
+        work_target = work_target.replace('\\\\','/').replace('\\','/').replace('//','/')
+        
+        if os.path.isfile(work_target) or os.path.isfile(work_target.replace('.png','.jpg')):
+            continue
 
-        nine_patch = (svg.find('.9.svg') != -1)
-
-        target_svg = svg
-        if(nine_patch):
-            target_svg = slicer.prepare_svg(svg, 1.0/dpi)
-
-        ls = subprocess.Popen(['inkscape', target_svg, '-z',
+        ls = subprocess.Popen(['inkscape', svg, '-z',
                                '-e' + work_target,
                                '-w' + str(twidth),
                                '-h' + str(theight)],
-                               shell=True,
-                               stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                               shell = True,
+                               stdout = subprocess.PIPE, stderr = subprocess.PIPE)
+
         ls.wait()
 
-        if(nine_patch):
-            os.remove(target_svg)
+        if not is_mipmap:
+            export_to_jpg = False
+            for export_file in convert_jpg.files:
+                if os.path.normpath(export_file) in os.path.normpath(base_path):
+                    export_to_jpg = True
+                    break
+
+            if export_to_jpg:
+                print(thread_name + print_name + ' > converted')
+                ls = subprocess.Popen(['convert', work_target, '-quality', '50',
+                                       work_target.replace('.png','.jpg')],
+                           shell = True,
+                           stdout = subprocess.PIPE, stderr = subprocess.PIPE)
+                ls.wait()
+                print(thread_name + print_name + ' > removed')
+                os.remove(work_target)
 
 ## -------------
 
