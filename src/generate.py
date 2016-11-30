@@ -63,20 +63,6 @@ dpis = {'ldpi' : 0.75 / base_dpi,  'mdpi' : 1.0 / base_dpi,
         'hdpi' : 1.5 / base_dpi,   'xhdpi' : 2.0 / base_dpi,
         'xxhdpi' : 3.0 / base_dpi, 'xxxhdpi' : 4.0 / base_dpi}
 
-# Get target files.
-files = glob.glob(settings.input_path + '*.svg')
-files = files + glob.glob(settings.input_path + '*/*.svg')
-
-print('Found ' + str(len(files)) + ' file(s).')
-print('Output: ' + settings.output_path)
-
-print('\nWorking:')
-
-working_dir = os.path.dirname(os.path.abspath(__file__))
-working_dir = working_dir.replace('\\', '/')
-
-index = 0
-
 def do_work():
     lock = threading.Lock()
     while 1:
@@ -105,7 +91,7 @@ def process_svg():
     heightStr = root.attrib['height']
 
     base_path = svg.replace(working_dir, '')
-    print_name = base_path.replace(settings.input_path, '')
+    print_name = base_path.replace(current_input_path, '')
 
     if widthStr.find('%') != -1:
         viewBox = root.attrib['viewBox'].split(' ')
@@ -149,9 +135,9 @@ def process_svg():
                 break
 
         if is_mipmap:
-            current_path = settings.output_path + '/mipmap-' + dpi_name + '/'
+            current_path = current_output_path + '/mipmap-' + dpi_name + '/'
         else:
-            current_path = settings.output_path + '/drawable-' + dpi_name + '/'
+            current_path = current_output_path + '/drawable-' + dpi_name + '/'
 
         work_target = current_path + target
         work_target = os.path.normpath(work_target)
@@ -188,27 +174,49 @@ def process_svg():
 
 ## -------------
 
-for index in range(len(settings.output_quality)):
-    dpi_name = settings.output_quality[index]
-    current_path = settings.output_path + '/mipmap-' + dpi_name + '/'
-    if not os.path.exists(current_path):
-        os.makedirs(current_path)
-    current_path = settings.output_path + '/drawable-' + dpi_name + '/'
-    if not os.path.exists(current_path):
-        os.makedirs(current_path)
+# Get target files.
+for i in range(len(settings.input_path)):
+    current_input_path = settings.input_path[i]
+    
+    if len(settings.output_path) == 1:
+        current_output_path = settings.output_path[0]
+    else:
+        current_output_path = settings.output_path[i]
 
-threads = []
+    files = glob.glob(current_input_path + '*.svg')
+    files = files + glob.glob(current_input_path + '*/*.svg')
 
-for current_thread in range(settings.number_of_threads):
-    try:
-        tr = threading.Thread(target=do_work)
-        tr.daemon = True
-        tr.start()
-        threads.append(tr)
-    except:
-        print('Error: unable to start thread')
+    print('Found ' + str(len(files)) + ' file(s).')
+    print('Output: ' + current_output_path)
 
-# join all threads
-for t in threads:
-    t.join()
-pass
+    print('\nWorking:')
+
+    working_dir = os.path.dirname(os.path.abspath(__file__))
+    working_dir = working_dir.replace('\\', '/')
+
+    index = 0
+
+    for index in range(len(settings.output_quality)):
+        dpi_name = settings.output_quality[index]
+        current_path = current_output_path + '/mipmap-' + dpi_name + '/'
+        if not os.path.exists(current_path):
+            os.makedirs(current_path)
+        current_path = current_output_path + '/drawable-' + dpi_name + '/'
+        if not os.path.exists(current_path):
+            os.makedirs(current_path)
+
+    threads = []
+
+    for current_thread in range(settings.number_of_threads):
+        try:
+            tr = threading.Thread(target=do_work)
+            tr.daemon = True
+            tr.start()
+            threads.append(tr)
+        except:
+            print('Error: unable to start thread')
+
+    # join all threads
+    for t in threads:
+        t.join()
+    pass

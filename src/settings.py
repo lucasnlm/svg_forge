@@ -35,8 +35,8 @@ pngout_optmize = 0
 pngout_path = r"PNGOUT_DIR"
 
 # Input SVG files path:
-input_path = r"SVG_DIR"
-output_path = r"RES_DIR"
+input_path = [ r"SVG_DIR" ]
+output_path = [ r"RES_DIR" ]
 
 
 # Output quality:
