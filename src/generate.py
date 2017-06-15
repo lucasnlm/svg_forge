@@ -42,7 +42,6 @@ import threading
 import time
 import settings
 import ignore
-import mipmap
 import convert_jpg
 
 print('RES Builder')
@@ -67,7 +66,7 @@ def do_work():
     lock = threading.Lock()
     while 1:
         with lock:
-            if len(files) == 0:
+            if len(svgs) == 0:
                 break
         process_svg()
         pass
@@ -77,10 +76,10 @@ def process_svg():
     lock = threading.Lock()
 
     with lock:
-        if len(files) == 0:
+        if len(svgs) == 0:
             return
-        svg = files[0]
-        files.remove(svg)
+        svg = svgs[0]
+        svgs.remove(svg)
 
     svg = os.path.normpath(svg)
     svg = svg.replace('\\\\','/').replace('\\','/').replace('//','/')
@@ -97,6 +96,9 @@ def process_svg():
         viewBox = root.attrib['viewBox'].split(' ')
         widthStr = viewBox[2]
         heightStr = viewBox[3]
+
+    widthStr = widthStr.replace('px','')
+    heightStr = heightStr.replace('px','')
 
     width = float(widthStr)
     height = float(heightStr)
@@ -128,16 +130,19 @@ def process_svg():
             with lock:
                 print(thread_name + print_name + ' > ' + dpi_name)
 
-        is_mipmap = False
-        for mipmap_file in mipmap.files:
-            if mipmap_file in os.path.normpath(base_path):
-                is_mipmap = True
-                break
+        is_mipmap = 'ic_launcher' in os.path.normpath(base_path)
+        is_adaptive = 'ic_launcher_adaptive' in os.path.normpath(base_path)
 
         if is_mipmap:
-            current_path = current_output_path + '/mipmap-' + dpi_name + '/'
+            if is_adaptive:
+                current_path = current_output_path + '/mipmap-' + dpi_name + '-v26/'
+            else:
+                current_path = current_output_path + '/mipmap-' + dpi_name + '/'
         else:
             current_path = current_output_path + '/drawable-' + dpi_name + '/'
+
+        if not os.path.exists(current_path):
+            os.makedirs(current_path)
 
         work_target = current_path + target
         work_target = os.path.normpath(work_target)
@@ -146,7 +151,7 @@ def process_svg():
         if os.path.isfile(work_target) or os.path.isfile(work_target.replace('.png','.jpg')):
             continue
 
-        ls = subprocess.Popen(['inkscape', svg, '-z',
+        ls = subprocess.Popen([settings.inkscape_path, svg, '-z',
                                '-e' + work_target,
                                '-w' + str(twidth),
                                '-h' + str(theight)],
@@ -164,7 +169,7 @@ def process_svg():
 
             if export_to_jpg:
                 print(thread_name + print_name + ' > converted')
-                ls = subprocess.Popen(['convert', work_target, '-quality', '50',
+                ls = subprocess.Popen([settings.image_magick, work_target, '-quality', '50',
                                        work_target.replace('.png','.jpg')],
                            shell = True,
                            stdout = subprocess.PIPE, stderr = subprocess.PIPE)
@@ -174,19 +179,27 @@ def process_svg():
 
 ## -------------
 
-# Get target files.
+# Get target svgs.
 for i in range(len(settings.input_path)):
     current_input_path = settings.input_path[i]
-    
+
     if len(settings.output_path) == 1:
         current_output_path = settings.output_path[0]
     else:
         current_output_path = settings.output_path[i]
 
-    files = glob.glob(current_input_path + '*.svg')
-    files = files + glob.glob(current_input_path + '*/*.svg')
+    svgs = []
 
-    print('Found ' + str(len(files)) + ' file(s).')
+    for root, dirs, files in os.walk(current_input_path):
+        for file in files:
+            if file.endswith('.svg'):
+                print(os.path.join(root, file))
+                svgs.append(os.path.join(root, file))
+
+    #files = glob.glob(current_input_path + '*.svg')
+    #files = files + glob.glob(current_input_path + '*/*.svg')
+
+    print('Found ' + str(len(svgs)) + ' file(s).')
     print('Output: ' + current_output_path)
 
     print('\nWorking:')

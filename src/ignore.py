@@ -26,7 +26,7 @@
 #-------------------------------------------------------------------------------
 
 # Add here the files you want to ignore.
-# Sample:
-# files = [ '/background/background.svg' ]
 
+# Example:
+# files = [ '/background/background.svg' ]
 files = [ ]

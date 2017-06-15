@@ -28,15 +28,18 @@
 ## Use double quote and raw string.
 
 # Inkspace path, e.g 'C:/Users/user_name/Desktop/inkscape'
-inkscape_path = r""
+inkscape_path = r"C:/Program Files/Inkscape/inkscape"
+
+# ImageMagick path
+image_magick = r"C:/ImageMagick/convert"
 
 # PngOut path
-pngout_optmize = 0
-pngout_path = r"PNGOUT_DIR"
+pngout_optmize = 1
+pngout_path = r"./pngout"
 
 # Input SVG files path:
-input_path = [ r"SVG_DIR" ]
-output_path = [ r"RES_DIR" ]
+input_path = [ ]
+output_path = [ ]
 
 
 # Output quality:
